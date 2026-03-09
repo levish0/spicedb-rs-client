@@ -185,13 +185,28 @@ async fn test_client_with_token(server: &SpiceDbServer, token: &str) -> Client {
 }
 
 async fn write_test_schema(client: &Client) {
-    client
-        .schema()
-        .write_schema(WriteSchemaRequest {
-            schema: TEST_SCHEMA.to_string(),
-        })
-        .await
-        .expect("schema write should succeed");
+    for _ in 0..20 {
+        match client
+            .schema()
+            .write_schema(WriteSchemaRequest {
+                schema: TEST_SCHEMA.to_string(),
+            })
+            .await
+        {
+            Ok(_) => return,
+            Err(status)
+                if matches!(
+                    status.code(),
+                    Code::Unavailable | Code::Unknown | Code::DeadlineExceeded
+                ) =>
+            {
+                sleep(Duration::from_millis(250)).await;
+            }
+            Err(status) => panic!("schema write should succeed: {status}"),
+        }
+    }
+
+    panic!("schema write should succeed: exhausted retry budget");
 }
 
 #[derive(Clone)]
