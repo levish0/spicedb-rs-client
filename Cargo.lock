@@ -1021,10 +1021,12 @@ name = "spicedb-rs-client"
 version = "1.49.2"
 dependencies = [
  "http",
+ "prost-types",
  "serial_test",
  "spicedb-rs-proto",
  "thiserror",
  "tokio",
+ "tokio-stream",
  "tonic",
 ]
 
