@@ -1,8 +1,15 @@
 [package]
 name = "spicedb-rs-proto"
 version.workspace = true
-edition.workspace = true
+authors.workspace = true
 license.workspace = true
+repository.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+keywords.workspace = true
+categories.workspace = true
+description = "Generated Rust protobuf and gRPC bindings for SpiceDB/Authzed APIs."
+readme = "README.md"
 build = "build.rs"
 
 [dependencies]

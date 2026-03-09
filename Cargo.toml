@@ -6,14 +6,17 @@ resolver = "3"
 version = "1.49.2"
 authors = ["Levi Laine <shiueo.csh@gmail.com>"]
 license = "Apache-2.0"
+repository = "https://github.com/levish0/spicedb-rs-client"
 edition = "2024"
 rust-version = "1.93.0"
+keywords = ["spicedb", "authzed", "grpc", "authorization", "permissions"]
+categories = ["api-bindings", "network-programming"]
 readme = "README.md"
 
 [workspace.dependencies]
 # Internal crates
-spicedb-rs-client = {path = "crates/spicedb-rs-client"}
-spicedb-rs-proto = { path = "crates/spicedb-rs-proto" }
+spicedb-rs-client = { path = "crates/spicedb-rs-client", version = "1.49.2" }
+spicedb-rs-proto = { path = "crates/spicedb-rs-proto", version = "1.49.2" }
 
 # External dependencies
 anyhow = "1.0.102"
