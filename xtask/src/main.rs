@@ -42,7 +42,7 @@ struct SyncProtoArgs {
     #[arg(long, default_value = "v1.49.2")]
     api_ref: String,
     /// Target proto directory under workspace root.
-    #[arg(long, default_value = "proto")]
+    #[arg(long, default_value = "crates/spicedb-rs-proto/proto")]
     proto_dir: PathBuf,
 }
 

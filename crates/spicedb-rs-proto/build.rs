@@ -5,8 +5,16 @@ use std::{
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let manifest_dir = PathBuf::from(env::var("CARGO_MANIFEST_DIR")?);
-    let proto_root = manifest_dir.join("../../proto");
+    let proto_root = resolve_proto_root(&manifest_dir);
 
+    println!(
+        "cargo:rerun-if-changed={}",
+        manifest_dir.join("proto").display()
+    );
+    println!(
+        "cargo:rerun-if-changed={}",
+        manifest_dir.join("../../proto").display()
+    );
     println!("cargo:rerun-if-changed={}", proto_root.display());
 
     let protoc = protoc_bin_vendored::protoc_bin_path()?;
@@ -22,13 +30,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+fn resolve_proto_root(manifest_dir: &Path) -> PathBuf {
+    let in_crate = manifest_dir.join("proto");
+    if in_crate.exists() {
+        in_crate
+    } else {
+        manifest_dir.join("../../proto")
+    }
+}
+
 fn service_proto_files(proto_root: &Path) -> Vec<PathBuf> {
     [
-        "authzed/api/v1/core.proto",
-        "authzed/api/v1/debug.proto",
-        "authzed/api/v1/error_reason.proto",
         "authzed/api/v1/experimental_service.proto",
-        "authzed/api/v1/openapi.proto",
         "authzed/api/v1/permission_service.proto",
         "authzed/api/v1/schema_service.proto",
         "authzed/api/v1/watch_service.proto",
