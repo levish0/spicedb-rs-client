@@ -1,7 +1,9 @@
 syntax = "proto3";
 package authzed.api.materialize.v0;
 
+import "authzed/api/materialize/v0/watchpermissions.proto";
 import "authzed/api/v1/core.proto";
+import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/authzed/authzed-go/proto/authzed/api/materialize/v0";
 option java_multiple_files = true;
@@ -191,6 +193,9 @@ message LookupPermissionSetsRequired {
 message BreakingSchemaChange {
   // change_at is the revision at which a breaking schema event has happened.
   authzed.api.v1.ZedToken change_at = 1;
+
+  // affected_permissions lists all the watched permissions that were directly affected by the breaking schema change.
+  repeated WatchedPermission affected_permissions = 2;
 }
 
 message DownloadPermissionSetsRequest {
@@ -209,4 +214,7 @@ message File {
 message DownloadPermissionSetsResponse {
   // files contains the list of downloadable files with their URLs
   repeated File files = 1;
+
+  // timestamp represents the time associated with the returned data revision.
+  google.protobuf.Timestamp timestamp = 2;
 }

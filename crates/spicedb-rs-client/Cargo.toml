@@ -1,0 +1,11 @@
+[package]
+name = "spicedb-rs-client"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+http.workspace = true
+spicedb-rs-proto = { path = "../spicedb-rs-proto" }
+thiserror.workspace = true
+tonic.workspace = true
