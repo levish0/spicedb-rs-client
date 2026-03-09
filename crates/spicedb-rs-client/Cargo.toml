@@ -5,7 +5,14 @@ edition.workspace = true
 license.workspace = true
 
 [dependencies]
+# Internal crates
+spicedb-rs-proto.workspace = true
+
+# External dependencies
 http.workspace = true
-spicedb-rs-proto = { path = "../spicedb-rs-proto" }
 thiserror.workspace = true
 tonic.workspace = true
+
+[dev-dependencies]
+serial_test.workspace = true
+tokio.workspace = true

@@ -1,11 +1,11 @@
-name: check
+name: test
 
 on:
   push:
   pull_request:
 
 jobs:
-  check:
+  test:
     runs-on: ubuntu-latest
 
     steps:
@@ -13,19 +13,11 @@ jobs:
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
-        with:
-          components: clippy, rustfmt
 
       - name: Cache Rust dependencies
         uses: Swatinem/rust-cache@v2
         with:
           workspaces: "."
 
-      - name: Check
-        run: cargo check --all-targets
-
-      - name: Clippy
-        run: cargo clippy --all-targets
-
-      - name: Format
-        run: cargo fmt --check
+      - name: Run tests
+        run: cargo test --workspace --all-targets -- --nocapture

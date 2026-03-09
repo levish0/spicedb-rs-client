@@ -36,6 +36,8 @@ pub struct AuthInterceptor {
 
 impl AuthInterceptor {
     fn from_token(token: Option<&str>) -> Result<Self, InvalidMetadataValue> {
+        // Token is optional to support test/local environments or callers that inject auth
+        // outside this client.
         let authorization_header = token
             .map(|token| format!("Bearer {token}").parse())
             .transpose()?;
@@ -83,41 +85,34 @@ impl ClientBuilder {
         }
     }
 
+    /// Sets the Bearer token attached as `authorization` metadata.
+    ///
+    /// If omitted, requests are sent without an authorization header.
     pub fn with_token(mut self, token: impl Into<String>) -> Self {
         self.token = Some(token.into());
         self
     }
 
+    /// Toggles plaintext HTTP/2 transport (no TLS).
+    ///
+    /// This is typically useful for local development and integration tests.
     pub fn insecure(mut self, insecure: bool) -> Self {
         self.insecure = insecure;
         self
     }
 
+    /// Eagerly connects to SpiceDB and fails fast on transport errors.
     pub async fn connect(self) -> Result<Client, ClientError> {
         let endpoint = endpoint_with_scheme(&self.endpoint, self.insecure);
         let channel = Endpoint::from_shared(endpoint)?.connect().await?;
-        let interceptor = AuthInterceptor::from_token(self.token.as_deref())?;
+        build_client(channel, self.token.as_deref())
+    }
 
-        Ok(Client {
-            permissions: PermissionsServiceClient::with_interceptor(
-                channel.clone(),
-                interceptor.clone(),
-            ),
-            schema: SchemaServiceClient::with_interceptor(channel.clone(), interceptor.clone()),
-            watch: WatchServiceClient::with_interceptor(channel.clone(), interceptor.clone()),
-            experimental: ExperimentalServiceClient::with_interceptor(
-                channel.clone(),
-                interceptor.clone(),
-            ),
-            watch_permissions: WatchPermissionsServiceClient::with_interceptor(
-                channel.clone(),
-                interceptor.clone(),
-            ),
-            watch_permission_sets: WatchPermissionSetsServiceClient::with_interceptor(
-                channel,
-                interceptor,
-            ),
-        })
+    /// Builds a client lazily, matching official clients that dial on first request.
+    pub fn connect_lazy(self) -> Result<Client, ClientError> {
+        let endpoint = endpoint_with_scheme(&self.endpoint, self.insecure);
+        let channel = Endpoint::from_shared(endpoint)?.connect_lazy();
+        build_client(channel, self.token.as_deref())
     }
 }
 
@@ -129,6 +124,31 @@ fn endpoint_with_scheme(endpoint: &str, insecure: bool) -> String {
     } else {
         format!("https://{endpoint}")
     }
+}
+
+fn build_client(channel: Channel, token: Option<&str>) -> Result<Client, ClientError> {
+    let interceptor = AuthInterceptor::from_token(token)?;
+
+    Ok(Client {
+        permissions: PermissionsServiceClient::with_interceptor(
+            channel.clone(),
+            interceptor.clone(),
+        ),
+        schema: SchemaServiceClient::with_interceptor(channel.clone(), interceptor.clone()),
+        watch: WatchServiceClient::with_interceptor(channel.clone(), interceptor.clone()),
+        experimental: ExperimentalServiceClient::with_interceptor(
+            channel.clone(),
+            interceptor.clone(),
+        ),
+        watch_permissions: WatchPermissionsServiceClient::with_interceptor(
+            channel.clone(),
+            interceptor.clone(),
+        ),
+        watch_permission_sets: WatchPermissionSetsServiceClient::with_interceptor(
+            channel,
+            interceptor,
+        ),
+    })
 }
 
 #[derive(Debug, Clone)]
@@ -146,29 +166,33 @@ impl Client {
         ClientBuilder::default()
     }
 
-    pub fn permissions(&mut self) -> &mut PermissionsServiceClient<InterceptedChannel> {
-        &mut self.permissions
+    /// Returns a cloned permissions client handle.
+    pub fn permissions(&self) -> PermissionsServiceClient<InterceptedChannel> {
+        self.permissions.clone()
     }
 
-    pub fn schema(&mut self) -> &mut SchemaServiceClient<InterceptedChannel> {
-        &mut self.schema
+    /// Returns a cloned schema client handle.
+    pub fn schema(&self) -> SchemaServiceClient<InterceptedChannel> {
+        self.schema.clone()
     }
 
-    pub fn watch(&mut self) -> &mut WatchServiceClient<InterceptedChannel> {
-        &mut self.watch
+    /// Returns a cloned watch client handle.
+    pub fn watch(&self) -> WatchServiceClient<InterceptedChannel> {
+        self.watch.clone()
     }
 
-    pub fn experimental(&mut self) -> &mut ExperimentalServiceClient<InterceptedChannel> {
-        &mut self.experimental
+    /// Returns a cloned experimental client handle.
+    pub fn experimental(&self) -> ExperimentalServiceClient<InterceptedChannel> {
+        self.experimental.clone()
     }
 
-    pub fn watch_permissions(&mut self) -> &mut WatchPermissionsServiceClient<InterceptedChannel> {
-        &mut self.watch_permissions
+    /// Returns a cloned materialize watch-permissions client handle.
+    pub fn watch_permissions(&self) -> WatchPermissionsServiceClient<InterceptedChannel> {
+        self.watch_permissions.clone()
     }
 
-    pub fn watch_permission_sets(
-        &mut self,
-    ) -> &mut WatchPermissionSetsServiceClient<InterceptedChannel> {
-        &mut self.watch_permission_sets
+    /// Returns a cloned materialize watch-permission-sets client handle.
+    pub fn watch_permission_sets(&self) -> WatchPermissionSetsServiceClient<InterceptedChannel> {
+        self.watch_permission_sets.clone()
     }
 }

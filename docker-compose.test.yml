@@ -1,0 +1,11 @@
+services:
+  spicedb:
+    image: authzed/spicedb:latest
+    ports:
+      - "50051:50051"
+    command: serve-testing
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/grpc_health_probe", "-addr=:50051"]
+      interval: 5s
+      timeout: 5s
+      retries: 20

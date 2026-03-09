@@ -1,3 +1,5 @@
+#![allow(clippy::large_enum_variant)]
+
 pub mod authzed {
     pub mod api {
         pub mod materialize {
