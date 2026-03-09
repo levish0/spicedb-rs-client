@@ -1,15 +1,14 @@
 [workspace]
-members = [
-    "crates/spicedb-rs-proto",
-    "crates/spicedb-rs-client",
-    "xtask",
-]
+members = ["crates/*", "xtask"]
 resolver = "3"
 
 [workspace.package]
-edition = "2024"
-license = "Apache-2.0"
 version = "0.1.0"
+authors = ["Levi Laine <shiueo.csh@gmail.com>"]
+license = "Apache-2.0"
+edition = "2024"
+rust-version = "1.93.0"
+readme = "README.md"
 
 [workspace.dependencies]
 anyhow = "1.0.102"
