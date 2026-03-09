@@ -94,6 +94,7 @@ struct SpiceDbServer {
 }
 
 impl SpiceDbServer {
+    // Prefer an externally managed endpoint if provided; otherwise spin up an isolated container.
     fn start() -> Self {
         if let Ok(endpoint) = env::var("SPICEDB_ENDPOINT") {
             return Self {
@@ -136,6 +137,7 @@ impl SpiceDbServer {
 }
 
 impl Drop for SpiceDbServer {
+    // Ensure local test containers are always cleaned up, even on panic.
     fn drop(&mut self) {
         if let Some(container_id) = &self.container_id {
             let _ = Command::new("docker")
@@ -152,6 +154,7 @@ async fn test_client(server: &SpiceDbServer, test_name: &str) -> Client {
 }
 
 async fn test_client_with_token(server: &SpiceDbServer, token: &str) -> Client {
+    // Retry until SpiceDB accepts RPCs; this covers container startup races.
     for _ in 0..60 {
         if let Ok(client) = ClientBuilder::new(server.endpoint.clone())
             .insecure(true)
@@ -312,6 +315,7 @@ async fn check_permissionship(
 #[tokio::test]
 #[serial]
 async fn schema_roundtrip_works() {
+    // Baseline smoke test: write schema then read it back.
     let server = SpiceDbServer::start();
     let client = test_client(&server, "schema-roundtrip").await;
     write_test_schema(&client).await;
@@ -334,6 +338,7 @@ async fn schema_roundtrip_works() {
 #[tokio::test]
 #[serial]
 async fn check_unknown_namespace_returns_failed_precondition() {
+    // Mirrors official client behavior for unknown definitions.
     let server = SpiceDbServer::start();
     let client = test_client(&server, "unknown-namespace").await;
 
@@ -363,6 +368,7 @@ async fn check_unknown_namespace_returns_failed_precondition() {
 #[tokio::test]
 #[serial]
 async fn check_permission_matrix_matches_relationships() {
+    // Verifies expected permission matrix for writer/reader relationships.
     let server = SpiceDbServer::start();
     let client = test_client(&server, "check-matrix").await;
     write_test_schema(&client).await;
@@ -418,6 +424,7 @@ async fn check_permission_matrix_matches_relationships() {
 #[tokio::test]
 #[serial]
 async fn caveated_check_behaves_like_official_clients() {
+    // Caveat context true/false/absent should map to has/no/conditional.
     let server = SpiceDbServer::start();
     let client = test_client(&server, "caveated-check").await;
     write_test_schema(&client).await;
@@ -472,6 +479,7 @@ async fn caveated_check_behaves_like_official_clients() {
 #[tokio::test]
 #[serial]
 async fn lookup_resources_returns_expected_items() {
+    // Stream lookup should return all resources writable by the subject.
     let server = SpiceDbServer::start();
     let client = test_client(&server, "lookup-resources").await;
     write_test_schema(&client).await;
@@ -507,6 +515,7 @@ async fn lookup_resources_returns_expected_items() {
 #[tokio::test]
 #[serial]
 async fn lookup_subjects_returns_expected_items() {
+    // Stream lookup should return all subjects that can view the resource.
     let server = SpiceDbServer::start();
     let client = test_client(&server, "lookup-subjects").await;
     write_test_schema(&client).await;
@@ -562,6 +571,7 @@ async fn lookup_subjects_returns_expected_items() {
 #[tokio::test]
 #[serial]
 async fn read_relationships_returns_expected_items() {
+    // Relationship read stream should expose the full tuple set for a resource.
     let server = SpiceDbServer::start();
     let client = test_client(&server, "read-relationships").await;
     write_test_schema(&client).await;
@@ -614,6 +624,7 @@ async fn read_relationships_returns_expected_items() {
 #[tokio::test]
 #[serial]
 async fn check_bulk_permissions_returns_expected_pairs() {
+    // Bulk check should return item responses with expected permissionship.
     let server = SpiceDbServer::start();
     let client = test_client(&server, "check-bulk").await;
     write_test_schema(&client).await;
@@ -663,6 +674,7 @@ async fn check_bulk_permissions_returns_expected_pairs() {
 #[tokio::test]
 #[serial]
 async fn export_import_bulk_relationships_roundtrip() {
+    // Export from one token namespace and import into another, then verify parity.
     let server = SpiceDbServer::start();
     let source_client = test_client(&server, "bulk-export-source").await;
     write_test_schema(&source_client).await;
@@ -731,6 +743,7 @@ async fn export_import_bulk_relationships_roundtrip() {
 #[tokio::test]
 #[serial]
 async fn write_relationships_accepts_transaction_metadata() {
+    // Transaction metadata should be accepted by SpiceDB on write calls.
     let server = SpiceDbServer::start();
     let client = test_client(&server, "transaction-metadata").await;
     write_test_schema(&client).await;
