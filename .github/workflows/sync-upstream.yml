@@ -1,0 +1,106 @@
+name: sync-upstream
+
+# Watches authzed/api for new releases and opens a PR that re-syncs the
+# vendored proto and bumps the workspace version to match the upstream tag.
+on:
+  schedule:
+    # Daily at 06:00 UTC. authzed/api tags sparsely, so most runs are no-ops.
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+    inputs:
+      api_ref:
+        description: "authzed/api git ref to sync (default: latest release)"
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve target upstream ref
+        id: target
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          INPUT_REF: ${{ inputs.api_ref }}
+        run: |
+          if [ -n "$INPUT_REF" ]; then
+            ref="$INPUT_REF"
+          else
+            ref="$(gh release view --repo authzed/api --json tagName -q .tagName)"
+          fi
+          version="${ref#v}"
+          echo "ref=$ref" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "Target upstream ref: $ref (version $version)"
+
+      - name: Read current workspace version
+        id: current
+        run: |
+          version="$(sed -nE 's/^version = "([^"]+)".*/\1/p' Cargo.toml | head -n1)"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "Current workspace version: $version"
+
+      - name: Skip if already up to date
+        id: gate
+        run: |
+          if [ "${{ steps.current.outputs.version }}" = "${{ steps.target.outputs.version }}" ]; then
+            echo "proceed=false" >> "$GITHUB_OUTPUT"
+            echo "Already at ${{ steps.target.outputs.version }}; nothing to do."
+          else
+            echo "proceed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install Rust
+        if: steps.gate.outputs.proceed == 'true'
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install buf
+        if: steps.gate.outputs.proceed == 'true'
+        uses: bufbuild/buf-setup-action@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Cache Rust dependencies
+        if: steps.gate.outputs.proceed == 'true'
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: "."
+
+      - name: Sync proto from upstream
+        if: steps.gate.outputs.proceed == 'true'
+        run: cargo run -p xtask -- sync-proto --api-ref "${{ steps.target.outputs.ref }}"
+
+      - name: Bump workspace version
+        if: steps.gate.outputs.proceed == 'true'
+        run: cargo run -p xtask -- bump-version "${{ steps.target.outputs.version }}"
+
+      - name: Sanity check build
+        if: steps.gate.outputs.proceed == 'true'
+        run: cargo check --all-targets
+
+      - name: Open pull request
+        if: steps.gate.outputs.proceed == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: sync-upstream/${{ steps.target.outputs.ref }}
+          base: main
+          commit-message: "chore: sync authzed/api ${{ steps.target.outputs.ref }}"
+          title: "chore: sync authzed/api ${{ steps.target.outputs.ref }}"
+          body: |
+            Automated sync of the vendored proto to
+            [authzed/api ${{ steps.target.outputs.ref }}](https://github.com/authzed/api/releases/tag/${{ steps.target.outputs.ref }}).
+
+            - Re-ran `cargo xtask sync-proto --api-ref ${{ steps.target.outputs.ref }}`
+            - Bumped workspace version `${{ steps.current.outputs.version }}` -> `${{ steps.target.outputs.version }}`
+
+            Review the proto diff, update `CHANGELOG.md`, then merge and publish
+            with `cargo xtask publish`.
+          labels: upstream-sync
+          delete-branch: true

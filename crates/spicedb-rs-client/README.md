@@ -6,7 +6,7 @@ Rust client for the SpiceDB/Authzed gRPC API.
 
 ```toml
 [dependencies]
-spicedb-rs-client = "1.49.2"
+spicedb-rs-client = "1.53.0"
 ```
 
 ## Example

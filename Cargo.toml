@@ -3,7 +3,7 @@ members = ["crates/*", "xtask"]
 resolver = "3"
 
 [workspace.package]
-version = "1.49.2"
+version = "1.53.0"
 authors = ["Levi Laine <shiueo.csh@gmail.com>"]
 license = "Apache-2.0"
 repository = "https://github.com/levish0/spicedb-rs-client"
@@ -15,8 +15,8 @@ readme = "README.md"
 
 [workspace.dependencies]
 # Internal crates
-spicedb-rs-client = { path = "crates/spicedb-rs-client", version = "1.49.2" }
-spicedb-rs-proto = { path = "crates/spicedb-rs-proto", version = "1.49.2" }
+spicedb-rs-client = { path = "crates/spicedb-rs-client", version = "1.53.0" }
+spicedb-rs-proto = { path = "crates/spicedb-rs-proto", version = "1.53.0" }
 
 # External dependencies
 anyhow = "1.0.102"

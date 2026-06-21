@@ -24,10 +24,18 @@ struct Cli {
 enum Commands {
     /// Sync Authzed API proto files and buf.lock dependencies into ./proto
     SyncProto(SyncProtoArgs),
+    /// Rewrite the workspace version in the root Cargo.toml
+    BumpVersion(BumpVersionArgs),
     /// Publish workspace crates to crates.io
     Publish,
     /// Run crates.io publish flow without uploading
     PublishDry,
+}
+
+#[derive(Args, Debug)]
+struct BumpVersionArgs {
+    /// New semantic version, e.g. 1.53.0 (a leading `v` is stripped).
+    version: String,
 }
 
 #[derive(Args, Debug)]
@@ -39,7 +47,7 @@ struct SyncProtoArgs {
     #[arg(long, default_value = "https://github.com/authzed/api.git")]
     api_repo: String,
     /// Git ref (tag/branch/commit) used when --api-dir is omitted.
-    #[arg(long, default_value = "v1.49.2")]
+    #[arg(long, default_value = "v1.53.0")]
     api_ref: String,
     /// Target proto directory under workspace root.
     #[arg(long, default_value = "crates/spicedb-rs-proto/proto")]
@@ -91,6 +99,7 @@ fn main() -> Result<()> {
 
     match cli.command {
         Commands::SyncProto(args) => sync_proto(&workspace_root, args)?,
+        Commands::BumpVersion(args) => bump_version(&workspace_root, &args.version)?,
         Commands::Publish => publish_workspace_crates(&workspace_root, false)?,
         Commands::PublishDry => publish_workspace_crates(&workspace_root, true)?,
     }
@@ -133,6 +142,51 @@ fn publish_workspace_crates(workspace_root: &Path, dry_run: bool) -> Result<()> 
     }
 
     println!("publish flow complete");
+    Ok(())
+}
+
+fn bump_version(workspace_root: &Path, new_version: &str) -> Result<()> {
+    let new_version = new_version.trim().trim_start_matches('v');
+    if new_version.is_empty() {
+        bail!("version must not be empty");
+    }
+
+    let manifest_path = workspace_root.join("Cargo.toml");
+    let manifest = fs::read_to_string(&manifest_path)
+        .with_context(|| format!("failed to read {}", manifest_path.display()))?;
+
+    let current = manifest
+        .lines()
+        .find_map(|line| {
+            let line = line.trim();
+            line.strip_prefix("version")
+                .and_then(|rest| rest.trim_start().strip_prefix('='))
+                .map(|value| value.trim().trim_matches('"').to_string())
+        })
+        .context("failed to find workspace.package version in Cargo.toml")?;
+
+    if current == new_version {
+        println!("version already {new_version}, nothing to do");
+        return Ok(());
+    }
+
+    // The exact `version = "<current>"` pattern appears on the workspace
+    // package line and on the two internal-crate dependency lines, but never
+    // on `rust-version = "..."` (its value differs), so a literal replace is
+    // both precise and safe.
+    let from = format!("version = \"{current}\"");
+    let to = format!("version = \"{new_version}\"");
+    let updated = manifest.replace(&from, &to);
+
+    let occurrences = manifest.matches(&from).count();
+    if occurrences == 0 {
+        bail!("no `{from}` occurrences found in Cargo.toml");
+    }
+
+    fs::write(&manifest_path, updated)
+        .with_context(|| format!("failed to write {}", manifest_path.display()))?;
+
+    println!("bumped version {current} -> {new_version} ({occurrences} occurrences)");
     Ok(())
 }
 

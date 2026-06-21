@@ -1018,7 +1018,7 @@ dependencies = [
 
 [[package]]
 name = "spicedb-rs-client"
-version = "1.49.2"
+version = "1.53.0"
 dependencies = [
  "http",
  "prost-types",
@@ -1032,7 +1032,7 @@ dependencies = [
 
 [[package]]
 name = "spicedb-rs-proto"
-version = "1.49.2"
+version = "1.53.0"
 dependencies = [
  "prost",
  "prost-types",
@@ -1507,7 +1507,7 @@ dependencies = [
 
 [[package]]
 name = "xtask"
-version = "1.49.2"
+version = "1.53.0"
 dependencies = [
  "anyhow",
  "clap",
