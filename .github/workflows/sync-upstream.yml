@@ -97,10 +97,10 @@ jobs:
             Automated sync of the vendored proto to
             [authzed/api ${{ steps.target.outputs.ref }}](https://github.com/authzed/api/releases/tag/${{ steps.target.outputs.ref }}).
 
-            - Re-ran `cargo xtask sync-proto --api-ref ${{ steps.target.outputs.ref }}`
+            - Re-ran `just sync-proto --api-ref ${{ steps.target.outputs.ref }}`
             - Bumped workspace version `${{ steps.current.outputs.version }}` -> `${{ steps.target.outputs.version }}`
 
             Review the proto diff, update `CHANGELOG.md`, then merge and publish
-            with `cargo xtask publish`.
+            with `just publish`.
           labels: upstream-sync
           delete-branch: true

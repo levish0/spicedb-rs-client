@@ -29,16 +29,22 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ## Development
 
+Repository tasks are driven by [`just`](https://github.com/casey/just); run `just`
+to list every recipe.
+
 ```bash
 # Proto sync (all flags are optional)
-cargo xtask sync-proto [--api-dir <PATH>] [--api-repo <URL>] [--api-ref <REF>] [--proto-dir <PATH>]
+just sync-proto [--api-dir <PATH>] [--api-repo <URL>] [--api-ref <REF>] [--proto-dir <PATH>]
 
 # Bump the workspace version (root Cargo.toml)
-cargo xtask bump-version <VERSION>
+just bump-version <VERSION>
 
-# Publish
-cargo xtask publish-dry
-cargo xtask publish
+# Format, lint, and test as CI does
+just check
+
+# Publish to crates.io (proto first, then client)
+just publish-dry
+just publish
 ```
 
 - If `--api-dir` is set, `--api-repo` and `--api-ref` are ignored.
@@ -54,6 +60,10 @@ You can also trigger it manually via the Actions tab (`workflow_dispatch`).
 
 ## Test
 
-```powershell
-cargo test --workspace --all-targets -- --nocapture
+```bash
+just test
 ```
+
+The integration tests start a disposable SpiceDB through docker; set
+`SPICEDB_ENDPOINT` to reuse a running server (`just up` starts the one in
+`docker-compose.test.yml` on `127.0.0.1:50051`).

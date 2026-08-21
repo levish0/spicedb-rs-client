@@ -4,8 +4,6 @@ use std::{
     fs,
     path::{Path, PathBuf},
     process::Command,
-    thread::sleep,
-    time::Duration,
 };
 
 use anyhow::{Context, Result, bail};
@@ -26,10 +24,6 @@ enum Commands {
     SyncProto(SyncProtoArgs),
     /// Rewrite the workspace version in the root Cargo.toml
     BumpVersion(BumpVersionArgs),
-    /// Publish workspace crates to crates.io
-    Publish,
-    /// Run crates.io publish flow without uploading
-    PublishDry,
 }
 
 #[derive(Args, Debug)]
@@ -90,9 +84,6 @@ const REQUIRED_DEPS: &[RequiredDep] = &[
     },
 ];
 
-const PUBLISH_CRATES: &[&str] = &["spicedb-rs-proto", "spicedb-rs-client"];
-const PUBLISH_INDEX_SYNC_DELAY: Duration = Duration::from_secs(15);
-
 fn main() -> Result<()> {
     let cli = Cli::parse();
     let workspace_root = workspace_root()?;
@@ -100,48 +91,8 @@ fn main() -> Result<()> {
     match cli.command {
         Commands::SyncProto(args) => sync_proto(&workspace_root, args)?,
         Commands::BumpVersion(args) => bump_version(&workspace_root, &args.version)?,
-        Commands::Publish => publish_workspace_crates(&workspace_root, false)?,
-        Commands::PublishDry => publish_workspace_crates(&workspace_root, true)?,
     }
 
-    Ok(())
-}
-
-fn publish_workspace_crates(workspace_root: &Path, dry_run: bool) -> Result<()> {
-    ensure_command_available("cargo")?;
-
-    println!(
-        "starting crates.io publish flow ({})",
-        if dry_run { "dry-run" } else { "publish" }
-    );
-
-    for (index, crate_name) in PUBLISH_CRATES.iter().enumerate() {
-        println!("publishing crate '{crate_name}'...");
-
-        let mut publish = Command::new("cargo");
-        publish
-            .current_dir(workspace_root)
-            .arg("publish")
-            .arg("-p")
-            .arg(crate_name);
-
-        if dry_run {
-            publish.arg("--dry-run");
-        }
-
-        run_command(&mut publish)
-            .with_context(|| format!("failed to publish crate '{crate_name}'"))?;
-
-        if !dry_run && index + 1 < PUBLISH_CRATES.len() {
-            println!(
-                "waiting {}s for crates.io index sync...",
-                PUBLISH_INDEX_SYNC_DELAY.as_secs()
-            );
-            sleep(PUBLISH_INDEX_SYNC_DELAY);
-        }
-    }
-
-    println!("publish flow complete");
     Ok(())
 }
 
