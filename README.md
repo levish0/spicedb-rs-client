@@ -1,5 +1,12 @@
 # spicedb-rs-client
 
+[![Build](https://github.com/levish0/spicedb-rs-client/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/levish0/spicedb-rs-client/actions/workflows/build.yml)
+[![Check](https://github.com/levish0/spicedb-rs-client/actions/workflows/check.yml/badge.svg?branch=main)](https://github.com/levish0/spicedb-rs-client/actions/workflows/check.yml)
+[![Test](https://github.com/levish0/spicedb-rs-client/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/levish0/spicedb-rs-client/actions/workflows/test.yml)
+[![Upstream sync](https://github.com/levish0/spicedb-rs-client/actions/workflows/sync-upstream.yml/badge.svg?branch=main)](https://github.com/levish0/spicedb-rs-client/actions/workflows/sync-upstream.yml)
+[![crates.io: spicedb-rs-client](https://img.shields.io/crates/v/spicedb-rs-client.svg?label=spicedb-rs-client)](https://crates.io/crates/spicedb-rs-client)
+[![crates.io: spicedb-rs-proto](https://img.shields.io/crates/v/spicedb-rs-proto.svg?label=spicedb-rs-proto)](https://crates.io/crates/spicedb-rs-proto)
+
 Rust client for the SpiceDB gRPC API.
 
 ## Installation
