@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added `just update-changelog` and automatic changelog entries in upstream sync PRs
 - Added a `justfile` with the repository task recipes (`check`, `test`, `up`/`down`,
   `sync-proto`, `bump-version`, `publish-dry`, `publish`)
 
@@ -16,6 +17,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Removed `cargo xtask publish` / `cargo xtask publish-dry`; the crates.io publish
   flow now lives in the `justfile` (`just publish` / `just publish-dry`)
+
+## [1.57.0] - 2026-10-04
+
+### Changed
+
+- Synced vendored protobuf definitions to [authzed/api `v1.57.0`](https://github.com/authzed/api/releases/tag/v1.57.0).
+- Aligned workspace/crate version from `1.53.0` to `1.57.0`.
+- Upstream API changes: [`v1.53.0...v1.57.0`](https://github.com/authzed/api/compare/v1.53.0...v1.57.0).
 
 ## [1.53.0] - 2026-06-21
 

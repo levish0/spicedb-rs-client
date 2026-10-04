@@ -1,7 +1,7 @@
 name: sync-upstream
 
 # Watches authzed/api for new releases and opens a PR that re-syncs the
-# vendored proto and bumps the workspace version to match the upstream tag.
+# vendored proto, bumps the workspace version, and updates CHANGELOG.md.
 on:
   schedule:
     # Daily at 06:00 UTC. authzed/api tags sparsely, so most runs are no-ops.
@@ -74,11 +74,26 @@ jobs:
 
       - name: Sync proto from upstream
         if: steps.gate.outputs.proceed == 'true'
-        run: cargo run -p xtask -- sync-proto --api-ref "${{ steps.target.outputs.ref }}"
+        env:
+          API_REF: ${{ steps.target.outputs.ref }}
+        run: cargo run -p xtask -- sync-proto --api-ref "$API_REF"
 
       - name: Bump workspace version
         if: steps.gate.outputs.proceed == 'true'
-        run: cargo run -p xtask -- bump-version "${{ steps.target.outputs.version }}"
+        env:
+          TARGET_VERSION: ${{ steps.target.outputs.version }}
+        run: cargo run -p xtask -- bump-version "$TARGET_VERSION"
+
+      - name: Update changelog
+        if: steps.gate.outputs.proceed == 'true'
+        env:
+          API_REF: ${{ steps.target.outputs.ref }}
+          PREVIOUS_VERSION: ${{ steps.current.outputs.version }}
+        run: |
+          cargo run -p xtask -- update-changelog \
+            --api-ref "$API_REF" \
+            --previous-version "$PREVIOUS_VERSION" \
+            --date "$(date -u +%F)"
 
       - name: Sanity check build
         if: steps.gate.outputs.proceed == 'true'
@@ -99,8 +114,9 @@ jobs:
 
             - Re-ran `just sync-proto --api-ref ${{ steps.target.outputs.ref }}`
             - Bumped workspace version `${{ steps.current.outputs.version }}` -> `${{ steps.target.outputs.version }}`
+            - Added a `CHANGELOG.md` entry with upstream release and comparison links
 
-            Review the proto diff, update `CHANGELOG.md`, then merge and publish
+            Review the proto diff and generated changelog entry, then merge and publish
             with `just publish`.
           labels: upstream-sync
           delete-branch: true

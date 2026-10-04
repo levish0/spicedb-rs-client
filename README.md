@@ -46,6 +46,9 @@ just sync-proto [--api-dir <PATH>] [--api-repo <URL>] [--api-ref <REF>] [--proto
 # Bump the workspace version (root Cargo.toml)
 just bump-version <VERSION>
 
+# Record an upstream sync in CHANGELOG.md
+just update-changelog --api-ref <TAG> --previous-version <VERSION> --date <YYYY-MM-DD>
+
 # Format, lint, and test as CI does
 just check
 
@@ -60,9 +63,13 @@ just publish
 
 ### Upstream sync automation
 
-The [`sync-upstream`](.github/workflows/sync-upstream.yml) workflow runs daily, checks
-the latest [authzed/api](https://github.com/authzed/api) release, and — when it is newer
-than the current version — re-runs `sync-proto`, bumps the version, and opens a PR.
+The [`sync-upstream`](.github/workflows/sync-upstream.yml) workflow runs daily and
+checks the latest [authzed/api](https://github.com/authzed/api) release. When a newer
+release is available, it re-runs `sync-proto`, bumps the version, updates
+`CHANGELOG.md`, and opens a PR. The changelog entry includes the previous and new
+versions plus upstream release and comparison links. Its date is the sync date
+(UTC). Existing version entries, release history, and `[Unreleased]` notes are
+preserved; review the generated entry before merging.
 You can also trigger it manually via the Actions tab (`workflow_dispatch`).
 
 ## Test

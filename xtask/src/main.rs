@@ -11,6 +11,8 @@ use clap::{Args, Parser, Subcommand};
 use serde::Deserialize;
 use walkdir::WalkDir;
 
+mod changelog;
+
 #[derive(Parser, Debug)]
 #[command(name = "cargo xtask")]
 struct Cli {
@@ -24,6 +26,8 @@ enum Commands {
     SyncProto(SyncProtoArgs),
     /// Rewrite the workspace version in the root Cargo.toml
     BumpVersion(BumpVersionArgs),
+    /// Add an upstream sync entry to CHANGELOG.md
+    UpdateChangelog(changelog::UpdateChangelogArgs),
 }
 
 #[derive(Args, Debug)]
@@ -91,6 +95,7 @@ fn main() -> Result<()> {
     match cli.command {
         Commands::SyncProto(args) => sync_proto(&workspace_root, args)?,
         Commands::BumpVersion(args) => bump_version(&workspace_root, &args.version)?,
+        Commands::UpdateChangelog(args) => changelog::update_changelog(&workspace_root, args)?,
     }
 
     Ok(())

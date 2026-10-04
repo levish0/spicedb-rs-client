@@ -38,6 +38,10 @@ sync-proto *args:
 bump-version version:
     cargo xtask bump-version {{version}}
 
+# Add an upstream sync changelog entry; existing version entries are preserved.
+update-changelog *args:
+    cargo xtask update-changelog {{args}}
+
 # Run the crates.io publish flow without uploading
 publish-dry:
     cargo publish -p spicedb-rs-proto --dry-run
