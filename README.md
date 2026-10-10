@@ -1,13 +1,24 @@
+<div align="center">
+
 # spicedb-rs-client
+
+Rust client for the SpiceDB gRPC API.
+
+[![crates.io: spicedb-rs-client](https://img.shields.io/crates/v/spicedb-rs-client.svg?label=spicedb-rs-client)](https://crates.io/crates/spicedb-rs-client)
+[![crates.io: spicedb-rs-proto](https://img.shields.io/crates/v/spicedb-rs-proto.svg?label=spicedb-rs-proto)](https://crates.io/crates/spicedb-rs-proto)
+[![Documentation](https://docs.rs/spicedb-rs-client/badge.svg)](https://docs.rs/spicedb-rs-client)
+[![Downloads](https://img.shields.io/crates/d/spicedb-rs-client.svg)](https://crates.io/crates/spicedb-rs-client)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Rust](https://img.shields.io/badge/rust-1.93.0+-orange.svg?logo=rust)](https://www.rust-lang.org/)
 
 [![Build](https://github.com/levish0/spicedb-rs-client/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/levish0/spicedb-rs-client/actions/workflows/build.yml)
 [![Check](https://github.com/levish0/spicedb-rs-client/actions/workflows/check.yml/badge.svg?branch=main)](https://github.com/levish0/spicedb-rs-client/actions/workflows/check.yml)
 [![Test](https://github.com/levish0/spicedb-rs-client/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/levish0/spicedb-rs-client/actions/workflows/test.yml)
 [![Upstream sync](https://github.com/levish0/spicedb-rs-client/actions/workflows/sync-upstream.yml/badge.svg?branch=main)](https://github.com/levish0/spicedb-rs-client/actions/workflows/sync-upstream.yml)
-[![crates.io: spicedb-rs-client](https://img.shields.io/crates/v/spicedb-rs-client.svg?label=spicedb-rs-client)](https://crates.io/crates/spicedb-rs-client)
-[![crates.io: spicedb-rs-proto](https://img.shields.io/crates/v/spicedb-rs-proto.svg?label=spicedb-rs-proto)](https://crates.io/crates/spicedb-rs-proto)
 
-Rust client for the SpiceDB gRPC API.
+</div>
+
+---
 
 ## Installation
 
