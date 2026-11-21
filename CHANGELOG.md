@@ -18,6 +18,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed `cargo xtask publish` / `cargo xtask publish-dry`; the crates.io publish
   flow now lives in the `justfile` (`just publish` / `just publish-dry`)
 
+## [1.58.0] - 2026-11-21
+
+### Changed
+
+- Synced vendored protobuf definitions to [authzed/api `v1.58.0`](https://github.com/authzed/api/releases/tag/v1.58.0).
+- Aligned workspace/crate version from `1.57.0` to `1.58.0`.
+- Upstream API changes: [`v1.57.0...v1.58.0`](https://github.com/authzed/api/compare/v1.57.0...v1.58.0).
+
 ## [1.57.0] - 2026-10-04
 
 ### Changed
